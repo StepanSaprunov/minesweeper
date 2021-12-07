@@ -68,11 +68,11 @@ function generateField() {
         new Image(),
     ]
 
-    images[0].src = "../img/opened_cell_empty.png";
+    images[0].src = "./img/opened_cell_empty.png";
     for (let i = 1; i < 9; i++) {
-        images[i].src = `../img/opened_cell_${i}.png`;
+        images[i].src = `./img/opened_cell_${i}.png`;
     }
-    images[9].src = "../img/opened_cell_mine.png";
+    images[9].src = "./img/opened_cell_mine.png";
 
     for (let i = 0; i < width; i++) {
         for (let j = 0; j < height; j++) {
