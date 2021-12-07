@@ -7,6 +7,22 @@
     <title>Minesweeper</title>
 </head>
 <body>
-    
+    <div class="field-size-control">
+        <input type="range" name="width" id="field-width" min="1" max="100" value="25" oninput="this.nextElementSibling.value = this.value">
+        <output></output>
+        <label for="width">width</label>
+    </div>
+    <div class="field-size-control">
+        <input type="range" name="height" id="field-height" min="1" max="100" value="25" oninput="this.nextElementSibling.value = this.value">
+        <output></output>
+        <label for="height">height</label>
+    </div>
+    <div class="field-size-control">
+        <input type="range" name="mines" id="field-mines" min="1" max="3" value="2" oninput="this.nextElementSibling.value = this.value">
+        <output></output>
+        <label for="field-width">difficult</label>
+    </div>
+    <canvas id="field" width="0" height="0"></canvas>
+    <script src="./scripts/create_field.js"></script>
 </body>
 </html>
