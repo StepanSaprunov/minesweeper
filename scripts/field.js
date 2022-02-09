@@ -41,6 +41,8 @@ export class Field {
             }
             this.openCell(this.activeCell.x, this.activeCell.y);
         }
+        this.firstClick = true;
+        this.canvas.addEventListener("click", this.handler)
     }
 
     reGenerate(canvas, width, height, difficult, cellSize) {
@@ -106,8 +108,6 @@ export class Field {
             }
             return images;
         })
-        this.firstClick = true;
-        this.canvas.addEventListener("click", this.handler)
     }
 
     #generateField(x, y) {
