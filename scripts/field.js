@@ -1,8 +1,49 @@
 export class Field {
     static images;
     static context;
+    static allfields = [];
 
     constructor (canvas, width, height, difficult, cellSize) {
+        this.canvas = canvas;
+        Field.context = canvas.getContext("2d");
+        this.width = +width;
+        this.height = +height;
+        this.cellSize = cellSize;
+        this.openedCells = new Array(+width).fill(0).map(el => el = new Array(+height).fill(false));
+        this.firstClick = true;
+        if (!Field.images) {
+            Field.images = this.#loadImages();
+        }
+        this.field = [];
+        this.difficult = +difficult;
+        this.cursor = {
+            x:undefined,
+            y:undefined
+        };
+        this.activeCell = {
+            x: undefined,
+            y: undefined
+        };
+        this.#drawClosedField();
+        this.count = 0;
+        this.handler = (event) => {
+            this.cursor = {
+                x: event.clientX - (this.canvas.getBoundingClientRect().x + window.scrollX),
+                y: event.clientY - (this.canvas.getBoundingClientRect().y + window.scrollY)
+            };
+            this.activeCell = {
+                x: Math.floor(this.cursor.x/this.cellSize),
+                y: Math.floor(this.cursor.y/this.cellSize)
+            };
+            if (this.firstClick) {
+                this.field = this.#generateField(this.activeCell.x, this.activeCell.y);
+                this.firstClick = false;
+            }
+            this.openCell(this.activeCell.x, this.activeCell.y);
+        }
+    }
+
+    reGenerate(canvas, width, height, difficult, cellSize) {
         this.canvas = canvas;
         Field.context = canvas.getContext("2d");
         this.width = +width;
@@ -66,21 +107,7 @@ export class Field {
             return images;
         })
         this.firstClick = true;
-        this.canvas.addEventListener("click", (event)=> {   
-            this.cursor = {
-                x: event.clientX - (this.canvas.getBoundingClientRect().x + window.scrollX),
-                y: event.clientY - (this.canvas.getBoundingClientRect().y + window.scrollY)
-            };
-            this.activeCell = {
-                x: Math.floor(this.cursor.x/this.cellSize),
-                y: Math.floor(this.cursor.y/this.cellSize)
-            };
-            if (this.firstClick) {
-                this.field = this.#generateField(this.activeCell.x, this.activeCell.y);
-                this.firstClick = false;
-            }
-            this.openCell(this.activeCell.x, this.activeCell.y);
-        })
+        this.canvas.addEventListener("click", this.handler)
     }
 
     #generateField(x, y) {
@@ -125,12 +152,85 @@ export class Field {
     }
     
     openCell(x, y) {
-        console.log(x, y, this.field[x][y], this.openedCells[x][y]);
+        //console.log(x, y, this.field[x][y], this.openedCells[x][y]);
+        this.count+=1;
         if (!this.openedCells[x][y])  {
             let type = this.field[x][y];
             Field.images.then((images)=>{
-                Field.context.drawImage(images[type], x*this.cellSize, y*this.cellSize, this.cellSize, this.cellSize);
-                this.openedCells[x][y] = true;
+                function openNumberedCell() {
+                    drawCell.apply(this, [x,y]);
+                }
+                function openMine() {
+                    drawCell.apply(this, [x,y]);
+                }
+                function openEmptyCell() {
+                    drawCell.apply(this, [x,y]);
+                    openAround.apply(this, [x,y]);
+                }
+                function openAround(x, y) {
+                    if (x-1 >= 0) {
+                        if (y-1 >= 0) {
+                            if (!this.openedCells[x-1][y-1]) {
+                                drawCell.apply(this, [x-1,y-1]);
+                                if (this.field[x-1][y-1] == 0) openAround.apply(this, [x-1,y-1]); 
+                            }
+                        }
+                        if (!this.openedCells[x-1][y]) {
+                            drawCell.apply(this, [x-1,y]);
+                            if (this.field[x-1][y] == 0) openAround.apply(this, [x-1,y]); 
+                        }
+                        if (y+1 < this.height) {
+                            if (!this.openedCells[x-1][y+1]) {
+                                drawCell.apply(this, [x-1,y+1]);
+                                if (this.field[x-1][y+1] == 0) openAround.apply(this, [x-1,y+1]); 
+                            }
+                        }
+                    }
+                    if (y-1 >= 0) {
+                        if (!this.openedCells[x][y-1]) {
+                            drawCell.apply(this, [x,y-1]);
+                            if (this.field[x][y-1] == 0) openAround.apply(this, [x,y-1]); 
+                        }
+                    }
+                    if (y+1 < this.height) {
+                        if (!this.openedCells[x][y+1]) {
+                            drawCell.apply(this, [x,y+1]);
+                            if (this.field[x][y+1] == 0) openAround.apply(this, [x,y+1]); 
+                        }
+                    }
+                    if (x+1 < this.width) {
+                        if (y-1 >= 0) {
+                            if (!this.openedCells[x+1][y-1]) {
+                                drawCell.apply(this, [x+1,y-1]);
+                                if (this.field[x+1][y-1] == 0) openAround.apply(this, [x+1,y-1]); 
+                            }
+                        }
+                        if (!this.openedCells[x+1][y]) {
+                            drawCell.apply(this, [x+1,y]);
+                            if (this.field[x+1][y] == 0) openAround.apply(this, [x+1,y]); 
+                        }
+                        if (y+1 < this.height) {
+                            if (!this.openedCells[x+1][y+1]) {
+                                drawCell.apply(this, [x+1,y+1]);
+                                if (this.field[x+1][y+1] == 0) openAround.apply(this, [x+1,y+1]); 
+                            }
+                        }
+                    }
+                }
+                function drawCell(x, y) {
+                    Field.context.drawImage(images[this.field[x][y]], x*this.cellSize, y*this.cellSize, this.cellSize, this.cellSize);
+                    this.openedCells[x][y] = true;
+                }
+
+                if ((type > 0) && (type < 9)) {
+                    openNumberedCell.apply(this);
+                }
+                if (type == 9) {
+                    openMine.apply(this);
+                }
+                if (type == 0) {
+                    openEmptyCell.apply(this);
+                }
                 return images;
             })
         }
